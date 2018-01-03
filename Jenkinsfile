@@ -66,24 +66,24 @@ def build(target, build_config) {
         def docker_file = build_config.docker_file
 
 
-        def OLD_IMAGE = sh (script: "docker images -q ${build_config.docker_name}",
-                            returnStdout: true)
-        echo "Old docker image: ${OLD_IMAGE}"
+        def old_image = sh (script: "docker images -q ${build_config.docker_name}",
+                            returnStdout: true).replace("\n", " ")
+        echo "Old docker image: ${old_image}"
 
         docker.build("${build_config.docker_name}", "-f ${build_config.docker_file} .")
 
-        def NEW_IMAGE = sh (script: "docker images -q ${build_config.docker_name}",
-                            returnStdout: true)
+        def new_image = sh (script: "docker images -q ${build_config.docker_name}",
+                            returnStdout: true).replace("\n", " ")
 
-        echo "New docker image: ${NEW_IMAGE}"
+        echo "New docker image: ${new_image}"
 
-        if (OLD_IMAGE.length() > 0 && OLD_IMAGE != NEW_IMAGE) {
+        if (old_image.length() > 0 && old_image != new_image) {
             def children = sh(script: "docker images --filter 'dangling=true' -q --no-trunc",
-                              returnStdout: true)
+                              returnStdout: true).replace("\n", " ")
             echo "Removing children: ${children}"
             sh("docker rmi ${children}")
-            echo "Removing old image: ${OLD_IMAGE}"
-            sh("docker rmi ${OLD_IMAGE}")
+            echo "Removing old image: ${old_image}"
+            sh("docker rmi ${old_image}")
         }
     }
 
