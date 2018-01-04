@@ -55,11 +55,6 @@ def checkoutRepo(target) {
         echo "Current branch is: ${git_branch}, current tag is: ${git_tag}"
         echo "Current tag is a RC tag: ${is_rc}"
         echo "Current tag is a Release tag: ${is_release}"
-
-        withAWS(credentials:'package-uploads') {
-            sh("sed -i 's/AWS_ACCESS_KEY_ID/${env.AWS_ACCESS_KEY_ID}/' s3auth.conf")
-            sh("sed -i 's/AWS_SECRET_ACCESS_KEY/${env.AWS_SECRET_ACCESS_KEY}/' s3auth.conf")
-        }
     }
 
     git_info = [
