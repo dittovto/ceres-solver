@@ -10,12 +10,14 @@ build_configs = [
         'docker_name' : 'ubuntu16-build-env',
         'docker_file' : 'Dockerfile.xenial',
         'repo'        : '3rdparty-16.04',
+        'staging_repo': '3rdparty-16.04-staging',
         'dist'        : 'xenial',
     ],
     'ubuntu_14_04' : [
         'docker_name' : 'ubuntu14-build-env',
         'docker_file' : 'Dockerfile.trusty',
         'repo'        : '3rdparty-14.04',
+        'staging_repo': '3rdparty-14.04-staging',
         'dist'        : 'trusty',
     ]
 ]
@@ -26,22 +28,20 @@ node('build && docker') {
     properties([[$class: 'BuildDiscarderProperty', strategy: [$class: 'LogRotator', artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '5']]]);
 
     build_configs.each { target, build_config ->
-        is_rc = false
-        is_release = false
-
-        checkoutRepo(target)
+        git_info = checkoutRepo(target)
 
         build(target, build_config)
 
-        if (is_release) {
-            publish(target, build_config)
-        }
+        publish(target, build_config, git_info)
 
         cleanUp(target)
     }
 }
 
 def checkoutRepo(target) {
+    def is_rc = false
+    def is_release = false
+
     stage("Checkout ${target}") {
         // Pull the code from the repo. `checkout` is a special Jenkins cmd.
         def scm_vars = checkout scm
@@ -56,6 +56,13 @@ def checkoutRepo(target) {
         echo "Current tag is a RC tag: ${is_rc}"
         echo "Current tag is a Release tag: ${is_release}"
     }
+
+    git_info = [
+        'is_release': is_release,
+        'is_rc': is_rc,
+    ]
+
+    return git_info
 }
 
 def build(target, build_config) {
@@ -79,7 +86,7 @@ def build(target, build_config) {
 
         if (old_image.length() > 0 && old_image != new_image) {
             def children = sh(script: "docker images --filter 'dangling=true' -q --no-trunc",
-                              returnStdout: true).replace("\n", " ")
+                              returnStdout: true).replace("\n", " ").replace(" ", "")
             echo "Removing children: ${children}"
             sh("docker rmi ${children}")
             echo "Removing old image: ${old_image}"
@@ -113,10 +120,12 @@ def build(target, build_config) {
     }
 }
 
-def publish(target, build_config) {
+def publish(target, build_config, git_info) {
     stage("Publish ${target}") {
+        def repo = git_info.is_release ? build_config.repo : build_config.staging_repo
+
         withAWS(credentials:'package-uploads') {
-            sh("./publish.sh ${build_config.repo} ${build_config.dist}")
+            sh("./publish.sh ${repo} ${build_config.dist}")
         }
     }
 }
