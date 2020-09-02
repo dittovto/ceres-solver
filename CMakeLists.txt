@@ -92,7 +92,7 @@ enable_testing()
 
 option(MINIGLOG "Use a stripped down version of glog." OFF)
 option(GFLAGS "Enable Google Flags." ON)
-option(SUITESPARSE "Enable SuiteSparse." ON)
+option(SUITESPARSE "Enable SuiteSparse." OFF)
 option(CXSPARSE "Enable CXSparse." ON)
 option(LAPACK "Enable use of LAPACK." ON)
 # Template specializations for the Schur complement based solvers. If
