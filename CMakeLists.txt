@@ -910,9 +910,10 @@ if (EXPORT_BUILD_DIR)
 
 endif (EXPORT_BUILD_DIR)
 
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libatlas3-base, libc6 (>= 2.14), libcxsparse3.1.4 | libcxsparse3, libgcc1 (>= 1:3.0), libgomp1 (>= 4.9), libgoogle-glog0v5, liblapack3 | liblapack.so.3, libstdc++6 (>= 5.2)")
+
 
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "13")
 set(CPACK_PACKAGE_VERSION_PATCH "0")
 include(CPack)
-
